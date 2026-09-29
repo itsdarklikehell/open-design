@@ -767,6 +767,23 @@ Detailed provenance → [`docs/references.md`](docs/references.md).
 
 [skill]: https://docs.anthropic.com/en/docs/claude-code/skills
 
+## :film_projector: Development visualization
+
+Bekijk de [Gource development video](https://github.com/itsdarklikehell/open-design/releases) voor een visuele tijdlijn van de projectgeschiedenis.
+
+Om de video lokaal te genereren (vereist gource ≥ 2023 en ffmpeg; voor repos met > 200 commits: gebruik de pipe-aanpak om disk-gebruik te beperken):
+```bash
+cd /pad/naar/open-design
+gource --seconds-per-day 3 -1920x1080 --auto-skip-seconds 1 \
+  --hide-users --hide-filenames --title "OpenDesign development timeline" \
+  --output-ppm-stream - --output-framerate 60 2>/dev/null | \
+ffmpeg -y -r 60 -i - -c:v libx264 -preset fast -crf 23 \
+  -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart \
+  open-design_gource_1080p.mp4 2>/dev/null
+```
+
+De GitHub Actions workflow (`.github/workflows/gource.yaml`) genereert de video automatisch bij elke push naar `main` en bij handmatige trigger.
+
 ## License
 
 Apache-2.0. Bundled skills and templates with their own `LICENSE` files retain those licenses, including `design-templates/guizang-ppt/` (MIT, [@op7418](https://github.com/op7418)), `design-templates/html-ppt/` (MIT, [@lewislulu](https://github.com/lewislulu)), and `skills/web-clone/` (MIT, [@Jane-xiaoer](https://github.com/Jane-xiaoer)).

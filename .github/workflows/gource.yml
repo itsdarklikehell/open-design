@@ -1,0 +1,53 @@
+name: Gource visualization
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # weekly
+  push:
+    branches: [ main ]
+
+jobs:
+  gource:
+    name: Generate Gource video
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Gource video
+        uses: nbprojekt/gource-action@v1.3.0
+        with:
+          gource_resolution: 1080p
+          gource_fps: 60
+          gource_max_files: 2000
+          gource_hide_items: "mouse,date,filenames"
+          gource_highlight_users: true
+          gource_output_framerate: 30
+          gource_stop_at_end: true
+          gource_auto_skip_seconds: 0.1
+          gource_seconds_per_day: 0.3
+          gource_multi_sampling: true
+
+      - name: Install ffmpeg (runner)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Re-encode to MP4
+        run: |
+          ffmpeg -y -i ./gource/gource.mp4 \
+            -c:v libx264 -crf 20 -preset medium \
+            -vf "scale=-1:720" -c:a aac -b:a 192k \
+            ./gource.mp4
+
+      - name: Commit Gource video
+        run: |
+          git config user.name "Corneel (Hermes agent)"
+          git config user.email "corneel@freedom.nl"
+          git add gource.mp4 || true
+          git diff --staged --quiet || git commit -m "ci: update gource visualization (automated)"
+          git push
